@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+# GNU Lesser General Public License v2.1 (see COPYING or https://www.gnu.org/licenses/gpl-2.1.txt)
+''' The AddonSignals module provides signal/slot mechanism for inter-addon communication in Kodi '''
 
+from __future__ import absolute_import, division, unicode_literals
 import base64
 import json
 import sys
@@ -7,10 +10,10 @@ import time
 import xbmc
 import xbmcaddon
 
-RECEIVER = None
 
 class WaitTimeoutError(Exception):
     pass
+
 
 def _perf_clock():
     """Provides high resolution timing in seconds"""
@@ -22,54 +25,70 @@ def _perf_clock():
     return time.time()  # Fallback
 
 
-def _getReceiver():
-    global RECEIVER  # pylint: disable=global-statement
-    if not RECEIVER:
-        RECEIVER = SignalReceiver()
-    return RECEIVER
+def _addon_id():
+    ''' Return the Kodi add-on id and cache it as a static variable '''
+    if not hasattr(_addon_id, 'cached'):
+        _addon_id.cached = xbmcaddon.Addon().getAddonInfo('id')
+    return getattr(_addon_id, 'cached')
 
 
-def _decodeData(data):
+def _decode_data(data):
+    ''' Decode base64-encoded JSON data and return Python data structure '''
     encoded_data = json.loads(data)
-    if encoded_data:
-        json_data = base64.b64decode(encoded_data[0])
-        # NOTE: With Python 3.5 and older json.loads() does not support bytes or bytearray
-        if isinstance(json_data, bytes):
-            json_data = json_data.decode('utf-8')
-        return json.loads(json_data)
-
-    return None
+    if not encoded_data:
+        return None
+    json_data = base64.b64decode(encoded_data[0])
+    # NOTE: With Python 3.5 and older json.loads() does not support bytes or bytearray
+    return json.loads(_to_unicode(json_data))
 
 
-def _encodeData(data):
+def _encode_data(data):
+    ''' Encode Python data structure into base64-encoded JSON data '''
     json_data = json.dumps(data)
     if not isinstance(json_data, bytes):
         json_data = json_data.encode('utf-8')
     encoded_data = base64.b64encode(json_data)
-    if sys.version_info[0] > 2:
-        encoded_data = encoded_data.decode('ascii')
-    return encoded_data
+    return encoded_data.decode('ascii')
+
+
+def _get_receiver():
+    ''' Return a SignalReceiver instance and cache it as a static variable '''
+    if not hasattr(_get_receiver, 'cached'):
+        _get_receiver.cached = SignalReceiver()
+    return getattr(_get_receiver, 'cached')
 
 
 def _jsonrpc(**kwargs):
     ''' Perform JSONRPC calls '''
     if 'id' not in kwargs:
-        kwargs.update(id=1)
+        kwargs.update(id=0)
     if 'jsonrpc' not in kwargs:
         kwargs.update(jsonrpc='2.0')
     return json.loads(xbmc.executeJSONRPC(json.dumps(kwargs)))
 
 
+def _to_unicode(text, encoding='utf-8', errors='strict'):
+    ''' Force text to unicode '''
+    if isinstance(text, bytes):
+        return text.decode(encoding, errors=errors)
+    return text
+
+
 class SignalReceiver(xbmc.Monitor):
+    ''' The AddonSignals receiver class '''
+
     def __init__(self):  # pylint: disable=super-init-not-called
+        ''' The SignalReceiver constructor '''
         self._slots = {}
 
     def registerSlot(self, signaler_id, signal, callback):
+        ''' Register a slot in the AddonSignals receiver '''
         if signaler_id not in self._slots:
             self._slots[signaler_id] = {}
         self._slots[signaler_id][signal] = callback
 
     def unRegisterSlot(self, signaler_id, signal):
+        ''' Unregister a slot in the AddonSignals receiver '''
         if signaler_id not in self._slots:
             return
         if signal not in self._slots[signaler_id]:
@@ -77,7 +96,8 @@ class SignalReceiver(xbmc.Monitor):
         del self._slots[signaler_id][signal]
 
     def onNotification(self, sender, method, data):
-        if not sender[-7:] == '.SIGNAL':
+        ''' The Kodi Monitor event handler for notifications '''
+        if not sender.endswith('.SIGNAL'):
             return
         sender = sender[:-7]
         if sender not in self._slots:
@@ -85,39 +105,43 @@ class SignalReceiver(xbmc.Monitor):
         signal = method.split('.', 1)[-1]
         if signal not in self._slots[sender]:
             return
-        self._slots[sender][signal](_decodeData(data))
+        self._slots[sender][signal](_decode_data(data))
 
 
-class CallHandler(object):
-    #pylint: disable=too-many-arguments
+class CallHandler:
+    ''' The AddonSignals event handler class '''
+
     def __init__(self, signal, data, source_id, timeout=1000, use_timeout_exception=False):
+        ''' The CallHandler constructor '''
         self.signal = signal
-        self.data = data
         self.timeout = timeout
-        self.sourceID = source_id
+        self.source_id = source_id
         self._return = None
         self.is_callback_received = False
         self.use_timeout_exception = use_timeout_exception
-        registerSlot(self.sourceID, '_return.{0}'.format(self.signal), self.callback)
-        sendSignal(signal, data, self.sourceID)
+        registerSlot(self.source_id, '_return.{0}'.format(self.signal), self.callback)
+        sendSignal(signal, data, self.source_id)
 
     def callback(self, data):
+        ''' Method to register function as callback '''
         self._return = data
         self.is_callback_received = True
 
     def waitForReturn(self):
+<<<<<<< HEAD
         monitor = xbmc.Monitor()
         end_time = _perf_clock() + (self.timeout / 1000)
         while not self.is_callback_received:
             if _perf_clock() > end_time:
                 if self.use_timeout_exception:
-                    unRegisterSlot(self.sourceID, self.signal)
+                    unRegisterSlot(self.source_id, self.signal)
                     raise WaitTimeoutError
                 break
             elif monitor.abortRequested():
                 raise OSError
             xbmc.sleep(10)
-        unRegisterSlot(self.sourceID, self.signal)
+        unRegisterSlot(self.source_id, self.signal)
+
         return self._return
 
 
@@ -128,28 +152,29 @@ def registerSlot(signaler_id, signal, callback):
     :param signal: name of the function to call (can be the same used in returnCall/makeCall/...)
     :param callback: the function to call
     """
-    receiver = _getReceiver()
+    receiver = _get_receiver()
     receiver.registerSlot(signaler_id, signal, callback)
 
 
 def unRegisterSlot(signaler_id, signal):
-    receiver = _getReceiver()
+    ''' API method to unregister a slot '''
+    receiver = _get_receiver()
     receiver.unRegisterSlot(signaler_id, signal)
 
 
 def sendSignal(signal, data=None, source_id=None, sourceID=None):
+    ''' API method to send a signal '''
     if sourceID:
         xbmc.log('++++==== script.module.addon.signals: sourceID keyword is DEPRECATED - use source_id ====++++', xbmc.LOGNOTICE)
-    source_id = source_id or sourceID or xbmcaddon.Addon().getAddonInfo('id')
-
     _jsonrpc(method='JSONRPC.NotifyAll', params=dict(
-        sender='%s.SIGNAL' % source_id,
+        sender='%s.SIGNAL' % source_id or sourceID or _addon_id(),
         message=signal,
-        data=[_encodeData(data)],
+        data=[_encode_data(data)],
     ))
 
 
 def registerCall(signaler_id, signal, callback):
+    ''' API method to register a callback slot '''
     registerSlot(signaler_id, signal, callback)
 
 

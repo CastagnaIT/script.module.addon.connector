@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, division, unicode_literals
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 from xml.dom.minidom import parse
 

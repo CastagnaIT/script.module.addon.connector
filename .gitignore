@@ -1,10 +1,18 @@
 # Byte-compiled / optimized / DLL files
 .coverage
+.pytest_cache/
 .tox/
 __pycache__/
 *.py[cod]
 
-*.zip
-
+# Packaging
 build/
 dist/
+*.zip
+
+# Logs
+kodi-addon-checker.log
+kodi-addon-checker-report.log
+
+# Temporary
+experiment/

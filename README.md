@@ -1,6 +1,6 @@
 [![GitHub release](https://img.shields.io/github/release/ruuk/script.module.addon.signals.svg)](https://github.com/ruuk/script.module.addon.signals/releases)
 [![Build Status](https://travis-ci.org/ruuk/script.module.addon.signals.svg?branch=master)](https://travis-ci.org/ruuk/script.module.addon.signals)
-[![License: LGPL-2.1](https://img.shields.io/badge/license-lgpl__2__1-blue)](https://opensource.org/licenses/LGPL-2.1)
+[![License: LGPL-2.1 or later](https://img.shields.io/badge/license-LGPLv2.1_or_later-blue)](https://opensource.org/licenses/LGPL-2.1)
 [![Contributors](https://img.shields.io/github/contributors/ruuk/script.module.addon.signals.svg)](https://github.com/ruuk/script.module.addon.signals/graphs/contributors)
 
 # script.module.addon.signals

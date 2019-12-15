@@ -1,9 +1,8 @@
 export PYTHONPATH := $(CURDIR)/lib:$(CURDIR)/test
-addon_xml := addon.xml
+PYTHON := python
 
-# Collect information to build as sensible package name
-name = $(shell xmllint --xpath 'string(/addon/@id)' $(addon_xml))
-version = $(shell xmllint --xpath 'string(/addon/@version)' $(addon_xml))
+name = $(shell xmllint --xpath 'string(/addon/@id)' addon.xml)
+version = $(shell xmllint --xpath 'string(/addon/@version)' addon.xml)
 git_branch = $(shell git rev-parse --abbrev-ref HEAD)
 git_hash = $(shell git rev-parse --short HEAD)
 
@@ -29,11 +28,11 @@ sanity: tox pylint
 
 tox:
 	@echo -e "$(white)=$(blue) Starting sanity tox test$(reset)"
-	tox -q
+	$(PYTHON) -m tox -q
 
 pylint:
 	@echo -e "$(white)=$(blue) Starting sanity pylint test$(reset)"
-	pylint lib/AddonSignals.py test
+	$(PYTHON) -m pylint lib/AddonSignals.py test/
 
 addon: clean
 	@echo -e "$(white)=$(blue) Starting sanity addon tests$(reset)"
@@ -41,7 +40,7 @@ addon: clean
 
 unit: clean
 	@echo -e "$(white)=$(blue) Starting unit tests$(reset)"
-	python -m unittest discover
+	$(PYTHON) -m unittest discover
 
 zip: clean
 	@echo -e "$(white)=$(blue) Building new package$(reset)"
@@ -51,7 +50,6 @@ zip: clean
 
 clean:
 	@echo -e "$(white)=$(blue) Cleaning up$(reset)"
-	find . -name '*.pyc' -type f -delete
-	find . -name '*.pyo' -type f -delete
+	find . -name '*.py[cod]' -type f -delete
 	find . -name '__pycache__' -type d -delete
 	rm -rf .pytest_cache/ .tox/ *.log
