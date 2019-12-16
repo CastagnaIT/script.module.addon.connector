@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright: (c) 2019, Dag Wieers (@dagwieers) <dag@wieers.com>
 # GNU General Public License v3.0 (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-''' This file implements the Kodi xbmc module, either using stubs or alternative functionality '''
+"""This file implements the Kodi xbmc module, either using stubs or alternative functionality"""
 
 # pylint: disable=invalid-name,super-init-not-called,unused-argument
 
@@ -22,16 +22,16 @@ LOGNONE = 7
 
 
 class Monitor(object):
-    ''' A stub implementation of the xbmc Monitor class '''
+    """A stub implementation of the xbmc Monitor class"""
     _instances = set()
 
     def __init__(self, line='', heading=''):
-        ''' A stub constructor for the xbmc Monitor class '''
+        """A stub constructor for the xbmc Monitor class"""
         self._instances.add(weakref.ref(self))
 
     @classmethod
     def getinstances(cls):
-        ''' Return the instances for this class '''
+        """Return the instances for this class"""
         dead = set()
         for ref in cls._instances:
             obj = ref()
@@ -43,7 +43,7 @@ class Monitor(object):
 
 
 def executeJSONRPC(jsonrpccommand):
-    ''' A reimplementation of the xbmc executeJSONRPC() function '''
+    """A reimplementation of the xbmc executeJSONRPC() function"""
     command = json.loads(jsonrpccommand)
 
     ret = dict(id=command.get('id'), jsonrpc='2.0', result='OK')
@@ -63,7 +63,7 @@ def executeJSONRPC(jsonrpccommand):
 
 
 def log(msg, level=0):
-    ''' A reimplementation of the xbmc log() function '''
+    """A reimplementation of the xbmc log() function"""
     color1 = '\033[32;1m'
     color2 = '\033[32;0m'
     name = LOGLEVELS[level]
@@ -79,5 +79,5 @@ def log(msg, level=0):
 
 
 def sleep(timemillis):
-    ''' A reimplementation of the xbmc sleep() function '''
+    """A reimplementation of the xbmc sleep() function"""
     time.sleep(timemillis / 1000)
