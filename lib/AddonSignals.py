@@ -2,7 +2,6 @@
 # GNU Lesser General Public License v2.1 (see COPYING or https://www.gnu.org/licenses/gpl-2.1.txt)
 """The AddonSignals module provides signal/slot mechanism for inter-addon communication in Kodi"""
 
-from __future__ import absolute_import, division, unicode_literals
 from xbmc import executeJSONRPC, log, LOGNOTICE, Monitor, sleep
 
 
