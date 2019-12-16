@@ -3,8 +3,7 @@
 # GNU General Public License v3.0 (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """This file implements the Kodi xbmc module, either using stubs or alternative functionality"""
 
-# pylint: disable=invalid-name,super-init-not-called,unused-argument
-
+# pylint: disable=bad-option-value,too-few-public-methods,useless-object-inheritance
 from __future__ import absolute_import, division, print_function, unicode_literals
 import json
 import time
@@ -25,7 +24,7 @@ class Monitor(object):
     """A stub implementation of the xbmc Monitor class"""
     _instances = set()
 
-    def __init__(self, line='', heading=''):
+    def __init__(self, line='', heading=''):  # pylint: disable=unused-argument
         """A stub constructor for the xbmc Monitor class"""
         self._instances.add(weakref.ref(self))
 

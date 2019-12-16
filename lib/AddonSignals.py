@@ -74,7 +74,7 @@ def _to_unicode(text, encoding='utf-8', errors='strict'):
     return text
 
 
-class SignalReceiver(Monitor, object):
+class SignalReceiver(Monitor, object):  # pylint: disable=bad-option-value,useless-object-inheritance
     """The AddonSignals receiver class"""
 
     def __init__(self):  # pylint: disable=super-init-not-called
@@ -109,7 +109,7 @@ class SignalReceiver(Monitor, object):
         self._slots[sender][signal](_decode_data(data))
 
 
-class CallHandler(object):
+class CallHandler(object):  # pylint: disable=bad-option-value,useless-object-inheritance
     """The AddonSignals event handler class"""
 
     def __init__(self, signal, data, source_id, timeout=1000, use_timeout_exception=False):
