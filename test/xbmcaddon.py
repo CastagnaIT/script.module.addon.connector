@@ -13,9 +13,9 @@ ADDON_ID = 'plugin.video.foobar'
 class Addon:
     ''' A reimplementation of the xbmcaddon Addon class '''
 
-    def __init__(self, id=ADDON_ID):  # pylint: disable=redefined-builtin
+    def __init__(self, id=None):  # pylint: disable=redefined-builtin
         ''' A stub constructor for the xbmcaddon Addon class '''
-        self.id = id
+        self.id = id or ADDON_ID
 
     def getAddonInfo(self, key):
         ''' A working implementation for the xbmcaddon Addon class getAddonInfo() method '''

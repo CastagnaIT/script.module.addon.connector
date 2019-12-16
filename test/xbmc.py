@@ -6,9 +6,9 @@
 # pylint: disable=invalid-name,super-init-not-called,unused-argument
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import json
 import time
+import weakref
 
 LOGLEVELS = ['Debug', 'Info', 'Notice', 'Warning', 'Error', 'Severe', 'Fatal', 'None']
 LOGDEBUG = 0
@@ -21,32 +21,45 @@ LOGFATAL = 6
 LOGNONE = 7
 
 
-class Monitor:
+class Monitor(object):
     ''' A stub implementation of the xbmc Monitor class '''
+    _instances = set()
+
     def __init__(self, line='', heading=''):
         ''' A stub constructor for the xbmc Monitor class '''
+        self._instances.add(weakref.ref(self))
 
-    @staticmethod
-    def abortRequested():
-        ''' A stub implementation for the xbmc Keyboard class abortRequested() method '''
-        return False
-
-    @staticmethod
-    def waitForAbort():
-        ''' A stub implementation for the xbmc Keyboard class waitForAbort() method '''
-        return
-
-
-def executebuiltin(string, wait=False):  # pylint: disable=unused-argument
-    ''' A stub implementation of the xbmc executebuiltin() function '''
-    return
+    @classmethod
+    def getinstances(cls):
+        ''' Return the instances for this class '''
+        dead = set()
+        for ref in cls._instances:
+            obj = ref()
+            if obj is not None:
+                yield obj
+            else:
+                dead.add(ref)
+        cls._instances -= dead
 
 
 def executeJSONRPC(jsonrpccommand):
     ''' A reimplementation of the xbmc executeJSONRPC() function '''
     command = json.loads(jsonrpccommand)
-    log("executeJSONRPC does not implement method '{method}'".format(**command), 'Error')
-    return json.dumps(dict(error=dict(code=-1, message='Not implemented'), id=1, jsonrpc='2.0'))
+
+    ret = dict(id=command.get('id'), jsonrpc='2.0', result='OK')
+    if command.get('method') == 'JSONRPC.NotifyAll':
+        # Send a notification to all instances of subclasses
+        for sub in Monitor.__subclasses__():
+            for obj in sub.getinstances():
+                obj.onNotification(
+                    sender=command.get('params').get('sender'),
+                    method=command.get('params').get('message'),
+                    data=json.dumps(command.get('params').get('data')),
+                )
+    else:
+        log("executeJSONRPC does not implement method '{method}'".format(**command), LOGERROR)
+        return json.dumps(dict(error=dict(code=-1, message='Not implemented'), id=command.get('id'), jsonrpc='2.0'))
+    return json.dumps(ret)
 
 
 def log(msg, level=0):

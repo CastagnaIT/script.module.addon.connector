@@ -3,12 +3,7 @@
 ''' The AddonSignals module provides signal/slot mechanism for inter-addon communication in Kodi '''
 
 from __future__ import absolute_import, division, unicode_literals
-import base64
-import json
-import sys
-import time
-import xbmc
-import xbmcaddon
+from xbmc import executeJSONRPC, log, LOGNOTICE, Monitor, sleep
 
 
 class WaitTimeoutError(Exception):
@@ -28,43 +23,49 @@ def _perf_clock():
 def _addon_id():
     ''' Return the Kodi add-on id and cache it as a static variable '''
     if not hasattr(_addon_id, 'cached'):
-        _addon_id.cached = xbmcaddon.Addon().getAddonInfo('id')
+        from xbmcaddon import Addon
+        _addon_id.cached = Addon().getAddonInfo('id')
     return getattr(_addon_id, 'cached')
 
 
 def _decode_data(data):
     ''' Decode base64-encoded JSON data and return Python data structure '''
+    import json
     encoded_data = json.loads(data)
     if not encoded_data:
         return None
-    json_data = base64.b64decode(encoded_data[0])
+    from base64 import b64decode
+    json_data = b64decode(encoded_data[0])
     # NOTE: With Python 3.5 and older json.loads() does not support bytes or bytearray
     return json.loads(_to_unicode(json_data))
 
 
 def _encode_data(data):
     ''' Encode Python data structure into base64-encoded JSON data '''
+    from base64 import b64encode
+    import json
     json_data = json.dumps(data)
     if not isinstance(json_data, bytes):
         json_data = json_data.encode('utf-8')
-    encoded_data = base64.b64encode(json_data)
+    encoded_data = b64encode(json_data)
     return encoded_data.decode('ascii')
 
 
-def _get_receiver():
+def _receiver():
     ''' Return a SignalReceiver instance and cache it as a static variable '''
-    if not hasattr(_get_receiver, 'cached'):
-        _get_receiver.cached = SignalReceiver()
-    return getattr(_get_receiver, 'cached')
+    if not hasattr(_receiver, 'cached'):
+        _receiver.cached = SignalReceiver()
+    return getattr(_receiver, 'cached')
 
 
 def _jsonrpc(**kwargs):
     ''' Perform JSONRPC calls '''
+    import json
     if 'id' not in kwargs:
         kwargs.update(id=0)
     if 'jsonrpc' not in kwargs:
         kwargs.update(jsonrpc='2.0')
-    return json.loads(xbmc.executeJSONRPC(json.dumps(kwargs)))
+    return json.loads(executeJSONRPC(json.dumps(kwargs)))
 
 
 def _to_unicode(text, encoding='utf-8', errors='strict'):
@@ -74,12 +75,13 @@ def _to_unicode(text, encoding='utf-8', errors='strict'):
     return text
 
 
-class SignalReceiver(xbmc.Monitor):
+class SignalReceiver(Monitor, object):
     ''' The AddonSignals receiver class '''
 
     def __init__(self):  # pylint: disable=super-init-not-called
         ''' The SignalReceiver constructor '''
         self._slots = {}
+        super(SignalReceiver, self).__init__()
 
     def registerSlot(self, signaler_id, signal, callback):
         ''' Register a slot in the AddonSignals receiver '''
@@ -108,7 +110,7 @@ class SignalReceiver(xbmc.Monitor):
         self._slots[sender][signal](_decode_data(data))
 
 
-class CallHandler:
+class CallHandler(object):
     ''' The AddonSignals event handler class '''
 
     def __init__(self, signal, data, source_id, timeout=1000, use_timeout_exception=False):
@@ -128,7 +130,6 @@ class CallHandler:
         self.is_callback_received = True
 
     def waitForReturn(self):
-<<<<<<< HEAD
         monitor = xbmc.Monitor()
         end_time = _perf_clock() + (self.timeout / 1000)
         while not self.is_callback_received:
@@ -152,22 +153,20 @@ def registerSlot(signaler_id, signal, callback):
     :param signal: name of the function to call (can be the same used in returnCall/makeCall/...)
     :param callback: the function to call
     """
-    receiver = _get_receiver()
-    receiver.registerSlot(signaler_id, signal, callback)
+    _receiver().registerSlot(signaler_id, signal, callback)
 
 
 def unRegisterSlot(signaler_id, signal):
     ''' API method to unregister a slot '''
-    receiver = _get_receiver()
-    receiver.unRegisterSlot(signaler_id, signal)
+    _receiver().unRegisterSlot(signaler_id, signal)
 
 
 def sendSignal(signal, data=None, source_id=None, sourceID=None):
     ''' API method to send a signal '''
     if sourceID:
-        xbmc.log('++++==== script.module.addon.signals: sourceID keyword is DEPRECATED - use source_id ====++++', xbmc.LOGNOTICE)
+        log('++++==== script.module.addon.signals: sourceID keyword is DEPRECATED - use source_id ====++++', LOGNOTICE)
     _jsonrpc(method='JSONRPC.NotifyAll', params=dict(
-        sender='%s.SIGNAL' % source_id or sourceID or _addon_id(),
+        sender='%s.SIGNAL' % (source_id or sourceID or _addon_id()),
         message=signal,
         data=[_encode_data(data)],
     ))

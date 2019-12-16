@@ -1,5 +1,9 @@
 [MESSAGES CONTROL]
 disable=
+    duplicate-code,
+    import-outside-toplevel,  # Done on purpose to reduce overhead at startup
     invalid-name,  # Module name or methods do not follow snake_case convention
-    line-too-long,  # We use flake8 for testing line-length
+    line-too-long,  # Flake8 is used for testing line-length
     old-style-class,
+    too-few-public-methods,
+    useless-object-inheritance,

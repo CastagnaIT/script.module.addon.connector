@@ -2,7 +2,7 @@
 # Copyright: (c) 2019, Dag Wieers (@dagwieers) <dag@wieers.com>
 # GNU General Public License v2.0 (see COPYING or https://www.gnu.org/licenses/gpl-2.0.txt)
 
-# pylint: disable=invalid-name,missing-docstring
+# pylint: disable=missing-docstring
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 import unittest
