@@ -142,7 +142,6 @@ class CallHandler(object):  # pylint: disable=bad-option-value,useless-object-in
                 raise OSError
             xbmc.sleep(10)
         unRegisterSlot(self.source_id, self.signal)
-
         return self._return
 
 
