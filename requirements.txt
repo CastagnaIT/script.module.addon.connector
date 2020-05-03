@@ -1,5 +1,5 @@
 codecov
-kodi-addon-checker
+kodi-addon-checker; python_version >= '3.5'
 pylint
 setuptools >= 41
-tox-travis
+tox

@@ -14,7 +14,7 @@
         <license>LGPL-2.1-or-later</license>
         <source>https://github.com/ruuk/script.module.addon.signals</source>
         <assets>
-            <icon>icon.png</icon>
+            <icon>resources/icon.png</icon>
         </assets>
     </extension>
 </addon>
