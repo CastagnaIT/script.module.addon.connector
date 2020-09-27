@@ -6,11 +6,12 @@ from xbmc import executeJSONRPC, log, LOGNOTICE, Monitor, sleep
 
 
 class WaitTimeoutError(Exception):
-    pass
+    """ Exception used when waiting times out"""
 
 
 def _perf_clock():
     """Provides high resolution timing in seconds"""
+    import time
     if hasattr(time, 'perf_counter'):
         return time.perf_counter()  # pylint: disable=no-member
     if hasattr(time, 'clock'):
@@ -25,6 +26,20 @@ def _addon_id():
         from xbmcaddon import Addon
         _addon_id.cached = Addon().getAddonInfo('id')
     return getattr(_addon_id, 'cached')
+
+
+def _to_unicode(text, encoding='utf-8', errors='strict'):
+    """Force text to unicode"""
+    if isinstance(text, bytes):
+        return text.decode(encoding, errors=errors)
+    return text
+
+
+def _receiver():
+    """Return a SignalReceiver instance and cache it as a static variable"""
+    if not hasattr(_receiver, 'cached'):
+        _receiver.cached = SignalReceiver()
+    return getattr(_receiver, 'cached')
 
 
 def _decode_data(data):
@@ -50,13 +65,6 @@ def _encode_data(data):
     return encoded_data.decode('ascii')
 
 
-def _receiver():
-    """Return a SignalReceiver instance and cache it as a static variable"""
-    if not hasattr(_receiver, 'cached'):
-        _receiver.cached = SignalReceiver()
-    return getattr(_receiver, 'cached')
-
-
 def _jsonrpc(**kwargs):
     """Perform JSONRPC calls"""
     import json
@@ -67,20 +75,11 @@ def _jsonrpc(**kwargs):
     return json.loads(executeJSONRPC(json.dumps(kwargs)))
 
 
-def _to_unicode(text, encoding='utf-8', errors='strict'):
-    """Force text to unicode"""
-    if isinstance(text, bytes):
-        return text.decode(encoding, errors=errors)
-    return text
-
-
 class SignalReceiver(Monitor, object):  # pylint: disable=bad-option-value,useless-object-inheritance
     """The AddonSignals receiver class"""
-
     def __init__(self):  # pylint: disable=super-init-not-called
-        """The SignalReceiver constructor"""
         self._slots = {}
-        super(SignalReceiver, self).__init__()
+        super(SignalReceiver, self).__init__()  # pylint: disable=bad-option-value,super-with-arguments
 
     def registerSlot(self, signaler_id, signal, callback):
         """Register a slot in the AddonSignals receiver"""
@@ -111,16 +110,16 @@ class SignalReceiver(Monitor, object):  # pylint: disable=bad-option-value,usele
 
 class CallHandler(object):  # pylint: disable=bad-option-value,useless-object-inheritance
     """The AddonSignals event handler class"""
-
-    def __init__(self, signal, data, source_id, timeout=1000, use_timeout_exception=False):
-        ''' The CallHandler constructor '''
+    def __init__(self, signal, data, source_id, timeout=1000, use_timeout_exception=False):  # pylint: disable=too-many-arguments
+        """The CallHandler constructor"""
         self.signal = signal
+        self.data = data
         self.timeout = timeout
         self.source_id = source_id
         self._return = None
         self.is_callback_received = False
         self.use_timeout_exception = use_timeout_exception
-        registerSlot(self.source_id, '_return.{0}'.format(self.signal), self.callback)
+        registerSlot(self.source_id, '_return_{0}'.format(self.signal), self.callback)
         sendSignal(signal, data, self.source_id)
 
     def callback(self, data):
@@ -130,7 +129,7 @@ class CallHandler(object):  # pylint: disable=bad-option-value,useless-object-in
 
     def waitForReturn(self):
         """Wait for callback to trigger"""
-        monitor = xbmc.Monitor()
+        monitor = Monitor()
         end_time = _perf_clock() + (self.timeout / 1000)
         while not self.is_callback_received:
             if _perf_clock() > end_time:
@@ -138,9 +137,9 @@ class CallHandler(object):  # pylint: disable=bad-option-value,useless-object-in
                     unRegisterSlot(self.source_id, self.signal)
                     raise WaitTimeoutError
                 break
-            elif monitor.abortRequested():
+            if monitor.abortRequested():
                 raise OSError
-            xbmc.sleep(10)
+            sleep(10)
         unRegisterSlot(self.source_id, self.signal)
         return self._return
 
@@ -183,7 +182,7 @@ def returnCall(signal, data=None, source_id=None):
     :param data: data to send
     :param source_id: the name used for call/answer (e.g. add-on id)
     """
-    sendSignal('_return.{0}'.format(signal), data, source_id)
+    sendSignal('_return_{0}'.format(signal), data, source_id)
 
 
 def makeCall(signal, data=None, source_id=None, timeout_ms=1000, use_timeout_exception=False):

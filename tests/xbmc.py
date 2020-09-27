@@ -26,13 +26,30 @@ class Monitor(object):
 
     def __init__(self, line='', heading=''):  # pylint: disable=unused-argument
         """A stub constructor for the xbmc Monitor class"""
+        self.iteration = 0
         self._instances.add(weakref.ref(self))
+
+    def abortRequested(self):
+        """A stub implementation for the xbmc Keyboard class abortRequested() method"""
+        self.iteration += 1
+        print('Iteration: %s' % self.iteration)
+        return self.iteration % 5 == 0
+
+    def waitForAbort(self, timeout=None):  # pylint: disable=no-self-use
+        """A stub implementation for the xbmc Monitor class waitForAbort() method"""
+        try:
+            time.sleep(timeout)
+        except KeyboardInterrupt:
+            return True
+        except Exception:  # pylint: disable=broad-except
+            return True
+        return False
 
     @classmethod
     def getinstances(cls):
         """Return the instances for this class"""
         dead = set()
-        for ref in cls._instances:
+        for ref in cls._instances.copy():
             obj = ref()
             if obj is not None:
                 yield obj

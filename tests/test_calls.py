@@ -58,9 +58,10 @@ class TestCalls(unittest.TestCase):
         self.assertEqual(ret, dict(value='return_unicode', data=data))
 
     def test_bogus_sender(self):
-        ret = makeCall(signal='test_bogus_sender', data=dict(bogus='data'), source_id='bogus.sender.id')
+        with self.assertRaises(OSError) as ctxt:
+            makeCall(signal='test_bogus_sender', data=dict(bogus='data'), source_id='bogus.sender.id')
+        self.assertTrue(isinstance(ctxt.exception, OSError))
 #        self.assertNotEqual(data, callback_bogus_sender.data)
-        self.assertEqual(ret, None)
 
     def test_send_multiple(self):
         for idx in range(3):
