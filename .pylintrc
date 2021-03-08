@@ -2,6 +2,7 @@
 disable=
     duplicate-code,  # Integration tests tend to test similar things
     import-outside-toplevel,  # Done on purpose to reduce overhead at startup
-    invalid-name,  # Module name or methods do not follow snake_case convention
     line-too-long,  # Flake8 is used for testing line-length
+    too-few-public-methods,
+    too-many-arguments
 max-line-length=160

@@ -1,5 +1,6 @@
 codecov
-kodi-addon-checker; python_version >= '3.5'
+kodi-addon-checker
 pylint
 setuptools >= 41
 tox
+Kodistubs==19.0.2

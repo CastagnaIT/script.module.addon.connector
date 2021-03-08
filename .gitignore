@@ -14,5 +14,14 @@ dist/
 kodi-addon-checker.log
 kodi-addon-checker-report.log
 
-# Temporary
-experiment/
+# PyCharm
+venv/
+.idea
+
+# Visual Studio Code
+.vscode
+
+# Visual Studio
+*.pyproj
+*.sln
+.vs/

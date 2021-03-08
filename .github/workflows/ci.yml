@@ -1,7 +1,5 @@
 name: CI
-on:
-- pull_request
-- push
+on: [pull_request, push]
 jobs:
   tests:
     name: Add-on testing
@@ -12,8 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        max-parallel: 2
-        python-version: [ 2.7, 3.5, 3.6, 3.7, 3.8 ]
+        python-version: [ 3.6, 3.7, 3.8, 3.9 ]
     steps:
     - name: Check out ${{ github.sha }} from repository ${{ github.repository }}
       uses: actions/checkout@v2
@@ -25,24 +22,23 @@ jobs:
       run: |
         sudo apt-get install gettext
         sudo pip install coverage --install-option="--install-scripts=/usr/bin"
-        python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run tox
       run: python -m tox -q -e flake8,py
     - name: Run pylint
-      run: python -m pylint lib/AddonSignals.py tests/
+      run: python -m pylint lib/ tests/
     - name: Run unit tests
       run: coverage run -m unittest discover
     - name: Upload code coverage to CodeCov
       uses: codecov/codecov-action@v1
       continue-on-error: true
-    - name: Analyze with SonarCloud
-      uses: SonarSource/sonarcloud-github-action@v1.4
-      with:
-        args: >
-          -Dsonar.organization=add-ons
-          -Dsonar.projectKey=add-ons_plugin.video.vrt.nu
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      continue-on-error: true
+    #- name: Analyze with SonarCloud
+    #  uses: SonarSource/sonarcloud-github-action@v1.4
+    #  with:
+    #    args: >
+    #      -Dsonar.organization=add-ons
+    #      -Dsonar.projectKey=add-ons_plugin.video.vrt.nu
+    #  env:
+    #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    #  continue-on-error: true

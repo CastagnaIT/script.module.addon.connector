@@ -3,8 +3,7 @@
 # GNU General Public License v3.0 (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 """This file implements the Kodi xbmc module, either using stubs or alternative functionality"""
 
-# pylint: disable=bad-option-value,too-few-public-methods,useless-object-inheritance
-from __future__ import absolute_import, division, print_function, unicode_literals
+# pylint: disable=bad-option-value,too-few-public-methods,useless-object-inheritance,invalid-name
 import json
 import time
 import weakref
@@ -20,7 +19,7 @@ LOGFATAL = 6
 LOGNONE = 7
 
 
-class Monitor(object):
+class Monitor:
     """A stub implementation of the xbmc Monitor class"""
     _instances = set()
 
@@ -32,8 +31,9 @@ class Monitor(object):
     def abortRequested(self):
         """A stub implementation for the xbmc Keyboard class abortRequested() method"""
         self.iteration += 1
-        print('Iteration: %s' % self.iteration)
-        return self.iteration % 5 == 0
+        # print('Iteration: %s' % self.iteration)
+        # return self.iteration % 5 == 0
+        return False
 
     def waitForAbort(self, timeout=None):  # pylint: disable=no-self-use
         """A stub implementation for the xbmc Monitor class waitForAbort() method"""
@@ -69,7 +69,7 @@ def executeJSONRPC(jsonrpccommand):
             for obj in sub.getinstances():
                 obj.onNotification(
                     sender=command.get('params').get('sender'),
-                    method=command.get('params').get('message'),
+                    method='Other.' + command.get('params').get('message'),
                     data=json.dumps(command.get('params').get('data')),
                 )
     else:

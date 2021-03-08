@@ -28,7 +28,7 @@ check-tox:
 
 check-pylint:
 	@echo -e "$(white)=$(blue) Starting sanity pylint test$(reset)"
-	$(PYTHON) -m pylint lib/AddonSignals.py tests/
+	$(PYTHON) -m pylint lib/addonconnector.py tests/
 
 check-addon: clean
 	@echo -e "$(white)=$(blue) Starting sanity addon tests$(reset)"
