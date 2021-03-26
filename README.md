@@ -9,6 +9,10 @@
 
 A Kodi module to provide communication between add-ons and add-ons services.
 
+***Project temporary stopped due to a memory leak on Kodi JSON-RPC call:***
+https://github.com/xbmc/xbmc/issues/19332
+
+
 ## Main features
 
 - Allows exchanging data between an add-on to his service or another add-on service
